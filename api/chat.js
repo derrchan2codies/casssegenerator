@@ -70,7 +70,7 @@ export default {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: process.env.OPENAI_MODEL || "gpt-6-luna",
+            model: process.env.OPENAI_MODEL || "gpt-6-astra",
             input: [
               { role: "system", content: SYSTEM_PROMPT },
               { role: "user", content: prompt },
