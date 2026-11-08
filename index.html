@@ -40,9 +40,20 @@
     font-size: 12px;
   }
   .output {
+    display: block;
     width: 50%;
     height: 200px;
     border: 2px solid black;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 8px;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+    color: black;
+    background: white;
+    text-align: left;
+    resize: vertical;
   }
   button {
     margin-top: 10px;
@@ -51,6 +62,9 @@
     color: black;
     padding: 6px 14px;
     font-family: Arial, sans-serif;
+  }
+  button:disabled {
+    opacity: 0.6;
   }
 </style>
 </head>
@@ -126,8 +140,8 @@
   </div>
 </div>
 
-<div class="output"></div>
-<button>generate case</button>
+<textarea class="output" id="prompt"></textarea>
+<button id="generate" type="button">send</button>
 
 <script>
   var age = document.getElementById("age");
@@ -148,6 +162,43 @@
   for (var k = 0; k < signBoxes.length; k++) {
     signBoxes[k].innerHTML = signOptions;
   }
+
+  var promptBox = document.getElementById("prompt");
+  var sendButton = document.getElementById("generate");
+
+  sendButton.addEventListener("click", function () {
+    var prompt = promptBox.value;
+    promptBox.value = "";
+    sendButton.disabled = true;
+
+    fetch("/api/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ prompt: prompt })
+    })
+      .then(function (response) {
+        return response.json().catch(function () {
+          return {};
+        });
+      })
+      .then(function (data) {
+        if (typeof data.answer === "string" && data.answer) {
+          promptBox.value = data.answer;
+        } else if (typeof data.error === "string" && data.error) {
+          promptBox.value = data.error;
+        } else {
+          promptBox.value = "The assistant returned an empty response.";
+        }
+      })
+      .catch(function () {
+        promptBox.value = "Could not contact OpenAI. Check Vercel Function Logs.";
+      })
+      .then(function () {
+        sendButton.disabled = false;
+      });
+  });
 </script>
 
 </body>
