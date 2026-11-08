@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Case Generator</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    color: black;
+    background: white;
+    margin: 0;
+    padding: 10px 15px;
+  }
+  .box {
+    border: 2px solid black;
+    padding: 15px;
+    margin-bottom: 15px;
+  }
+  select {
+    border: 1px solid black;
+    padding: 4px;
+    margin-left: 8px;
+    margin-right: 40px;
+  }
+  .line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    margin: 10px 0;
+  }
+  .line span {
+    width: 70px;
+    flex-shrink: 0;
+  }
+  .line select {
+    flex: 1;
+    width: 0;
+    min-width: 0;
+    margin: 0;
+    font-size: 12px;
+  }
+  .output {
+    width: 50%;
+    height: 200px;
+    border: 2px solid black;
+  }
+  button {
+    margin-top: 10px;
+    border: 2px solid black;
+    background: white;
+    color: black;
+    padding: 6px 14px;
+    font-family: Arial, sans-serif;
+  }
+</style>
+</head>
+<body>
+
+<p>case generator</p>
+
+<div class="box">
+  Age
+  <select id="age"></select>
+  Sex
+  <select>
+    <option>Male</option>
+    <option>Female</option>
+  </select>
+</div>
+
+<div class="box">
+  <div class="line">
+    <span>Symptoms</span>
+    <select id="symptom1">
+      <option value=""></option>
+      <option>nocturnal wheeze</option>
+      <option>haemoptysis</option>
+      <option>orthopnoea</option>
+      <option>crushing central chest pressure</option>
+      <option>exertional syncope</option>
+      <option>periumbilical pain migrating to right lower abdomen</option>
+      <option>tea-coloured urine</option>
+      <option>dysuria</option>
+      <option>polydipsia</option>
+      <option>polyuria</option>
+      <option>cold intolerance</option>
+      <option>heat intolerance</option>
+      <option>salt craving</option>
+      <option>sudden night-time big toe pain</option>
+      <option>resting hand tremor</option>
+      <option>unilateral throbbing headache</option>
+      <option>recurrent thrush</option>
+      <option>tingling feet</option>
+    </select>
+    <select class="symptom"></select>
+    <select class="symptom"></select>
+    <select class="symptom"></select>
+    <select class="symptom"></select>
+  </div>
+  <div class="line">
+    <span>Signs</span>
+    <select id="sign1">
+      <option value=""></option>
+      <option>expiratory polyphonic wheeze</option>
+      <option>apical crackles</option>
+      <option>raised JVP</option>
+      <option>ejection systolic murmur radiating to carotids</option>
+      <option>irregularly irregular pulse</option>
+      <option>McBurney's point tenderness</option>
+      <option>Murphy's sign</option>
+      <option>scleral icterus</option>
+      <option>spider naevi</option>
+      <option>suprapubic tenderness</option>
+      <option>acanthosis nigricans</option>
+      <option>lid lag</option>
+      <option>koilonychia</option>
+      <option>cogwheel rigidity</option>
+      <option>Kernig's sign</option>
+      <option>reduced monofilament sensation</option>
+      <option>dot-blot retinal haemorrhages</option>
+    </select>
+    <select class="sign"></select>
+    <select class="sign"></select>
+    <select class="sign"></select>
+    <select class="sign"></select>
+  </div>
+</div>
+
+<div class="output"></div>
+<button>generate case</button>
+
+<script>
+  var age = document.getElementById("age");
+  for (var i = 1; i <= 115; i++) {
+    var opt = document.createElement("option");
+    opt.textContent = i;
+    age.appendChild(opt);
+  }
+
+  var symptomOptions = document.getElementById("symptom1").innerHTML;
+  var symptomBoxes = document.getElementsByClassName("symptom");
+  for (var j = 0; j < symptomBoxes.length; j++) {
+    symptomBoxes[j].innerHTML = symptomOptions;
+  }
+
+  var signOptions = document.getElementById("sign1").innerHTML;
+  var signBoxes = document.getElementsByClassName("sign");
+  for (var k = 0; k < signBoxes.length; k++) {
+    signBoxes[k].innerHTML = signOptions;
+  }
+</script>
+
+</body>
+</html>
