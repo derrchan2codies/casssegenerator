@@ -53,7 +53,9 @@
     color: black;
     background: white;
     text-align: left;
-    resize: vertical;
+    overflow: auto;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
   }
   button {
     margin-top: 10px;
@@ -76,7 +78,7 @@
   Age
   <select id="age"></select>
   Sex
-  <select>
+  <select id="sex">
     <option>Male</option>
     <option>Female</option>
   </select>
@@ -140,7 +142,7 @@
   </div>
 </div>
 
-<textarea class="output" id="prompt"></textarea>
+<div class="output" id="answer"></div>
 <button id="generate" type="button">generate case</button>
 
 <script>
@@ -163,13 +165,25 @@
     signBoxes[k].innerHTML = signOptions;
   }
 
-  var promptBox = document.getElementById("prompt");
-  var sendButton = document.getElementById("generate");
+  var sex = document.getElementById("sex");
+  var answerBox = document.getElementById("answer");
+  var generateButton = document.getElementById("generate");
 
-  sendButton.addEventListener("click", function () {
-    var prompt = promptBox.value;
-    promptBox.value = "";
-    sendButton.disabled = true;
+  function chosen(selects) {
+    var values = [];
+    for (var n = 0; n < selects.length; n++) {
+      if (selects[n].value !== "") values.push(selects[n].value);
+    }
+    return values;
+  }
+
+  generateButton.addEventListener("click", function () {
+    var parts = [age.value, sex.value]
+      .concat(chosen(document.querySelectorAll("#symptom1, select.symptom")))
+      .concat(chosen(document.querySelectorAll("#sign1, select.sign")));
+    var prompt = parts.join("+");
+    answerBox.textContent = "";
+    generateButton.disabled = true;
 
     fetch("/api/chat", {
       method: "POST",
@@ -185,18 +199,18 @@
       })
       .then(function (data) {
         if (typeof data.answer === "string" && data.answer) {
-          promptBox.value = data.answer;
+          answerBox.textContent = data.answer;
         } else if (typeof data.error === "string" && data.error) {
-          promptBox.value = data.error;
+          answerBox.textContent = data.error;
         } else {
-          promptBox.value = "The assistant returned an empty response.";
+          answerBox.textContent = "The assistant returned an empty response.";
         }
       })
       .catch(function () {
-        promptBox.value = "Could not contact OpenAI. Check Vercel Function Logs.";
+        answerBox.textContent = "Could not contact OpenAI. Check Vercel Function Logs.";
       })
       .then(function () {
-        sendButton.disabled = false;
+        generateButton.disabled = false;
       });
   });
 </script>
