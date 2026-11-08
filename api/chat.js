@@ -1,6 +1,6 @@
 // Master prompt. Replace this text with your own instructions.
 // It is always sent before whatever is typed in the text box.
-const SYSTEM_PROMPT = "You are a helpful assistant.";
+const SYSTEM_PROMPT = "You just do whatever is given to you after the question mark ?";
 
 const JSON_HEADERS = {
   "Content-Type": "application/json; charset=utf-8",
