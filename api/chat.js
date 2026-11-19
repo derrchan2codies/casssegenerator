@@ -2,6 +2,8 @@
 // It is always sent before whatever is typed in the text box.
 const SYSTEM_PROMPT = "What you will see after the question mark is an age of a human patient (the number will be between 1 and 115)  and the sex of that human (as in male or female) along with up to 10 different signs and symptoms and they will all be arranged in a way where each is seperated by a plus sign and that plus sign just mean everything is to be considered by you. You will take in the age, sex and all the signs and symptoms and first come up with one with one main diagnosis and once you have that main diagnosis write a main mock medical case on that main diagnosis and be extremely detailed like 200 words or so and include names and full history based on your differential and a full social history as well ? ";
 
+const DEFAULT_MODEL = "gemini-4-neon";
+
 const JSON_HEADERS = {
   "Content-Type": "application/json; charset=utf-8",
   "Cache-Control": "no-store",
@@ -15,19 +17,25 @@ function json(body, status = 200) {
 }
 
 function getAnswer(data) {
-  if (typeof data?.output_text === "string") {
-    return data.output_text.trim();
+  const candidates = Array.isArray(data?.candidates) ? data.candidates : [];
+
+  for (const candidate of candidates) {
+    const parts = Array.isArray(candidate?.content?.parts)
+      ? candidate.content.parts
+      : [];
+
+    const text = parts
+      .filter((part) => !part?.thought && typeof part?.text === "string")
+      .map((part) => part.text)
+      .join("")
+      .trim();
+
+    if (text) {
+      return text;
+    }
   }
 
-  const output = Array.isArray(data?.output) ? data.output : [];
-
-  return output
-    .flatMap((item) => Array.isArray(item?.content) ? item.content : [])
-    .filter((item) => item?.type === "output_text")
-    .map((item) => item.text)
-    .filter((text) => typeof text === "string")
-    .join("\n")
-    .trim();
+  return "";
 }
 
 export default {
@@ -36,11 +44,11 @@ export default {
       return json({ error: "Method not allowed." }, 405);
     }
 
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
 
     if (!apiKey) {
       return json(
-        { error: "OPENAI_API_KEY is missing in Vercel environment variables." },
+        { error: "GEMINI_API_KEY is missing in Vercel environment variables." },
         500,
       );
     }
@@ -60,43 +68,52 @@ export default {
       return json({ error: "Please enter a question." }, 400);
     }
 
+    const model =
+      (process.env.GEMINI_MODEL || DEFAULT_MODEL)
+        .trim()
+        .replace(/^models\//, "") || DEFAULT_MODEL;
+
     try {
-      const openaiResponse = await fetch(
-        "https://api.openai.com/v1/responses",
+      const geminiResponse = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${apiKey}`,
             "Content-Type": "application/json",
+            "x-goog-api-key": apiKey,
           },
           body: JSON.stringify({
-            model: process.env.OPENAI_MODEL || "gpt-6-astra",
-            input: [
-              { role: "system", content: SYSTEM_PROMPT },
-              { role: "user", content: prompt },
+            systemInstruction: {
+              parts: [{ text: SYSTEM_PROMPT }],
+            },
+            contents: [
+              {
+                role: "user",
+                parts: [{ text: prompt }],
+              },
             ],
           }),
         },
       );
 
-      const data = await openaiResponse.json().catch(() => ({}));
+      const data = await geminiResponse.json().catch(() => ({}));
 
-      if (!openaiResponse.ok) {
+      if (!geminiResponse.ok) {
         const message =
           typeof data?.error?.message === "string"
             ? data.error.message
-            : `OpenAI returned status ${openaiResponse.status}.`;
+            : `Gemini returned status ${geminiResponse.status}.`;
 
-        console.error("OpenAI API error:", openaiResponse.status, message);
+        console.error("Gemini API error:", geminiResponse.status, message);
 
         // Shows the real setup error in your webpage while testing.
-        return json({ error: message }, openaiResponse.status);
+        return json({ error: message }, geminiResponse.status);
       }
 
       const answer = getAnswer(data);
 
       if (!answer) {
-        console.error("OpenAI returned no text:", data);
+        console.error("Gemini returned no text:", data);
         return json(
           { error: "The assistant returned an empty response." },
           502,
@@ -108,7 +125,7 @@ export default {
       console.error("Chat function failed:", error);
 
       return json(
-        { error: "Could not contact OpenAI. Check Vercel Function Logs." },
+        { error: "Could not contact Gemini. Check Vercel Function Logs." },
         502,
       );
     }
